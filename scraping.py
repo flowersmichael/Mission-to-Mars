@@ -4,6 +4,7 @@ sys.path.append("/opt/anaconda3/envs/python37/lib/python3.7/site-packages")
 from splinter import Browser
 from bs4 import BeautifulSoup as soup
 import pandas as pd
+import datetime as dt
 
 # Import ChromeDriverManager
 from webdriver_manager.chrome import ChromeDriverManager
@@ -13,9 +14,13 @@ def scrape_all():
     # Set the executable path and initialize the chrome browser in splinter
     # Initiate headless driver for deployment
     executable_path = {'executable_path': ChromeDriverManager().install()}
-    browser = Browser('chrome', **executable_path, headless=False)
+    browser = Browser('chrome', **executable_path, headless=True)
 
     news_title, news_paragraph = mars_news(browser)
+    print ('title is')
+    print(news_title)
+    print('paragraph')
+    print(news_paragraph)
 
     # Run all scraping functions and store results in a dictionary
     data = {
@@ -65,31 +70,16 @@ def mars_news(browser):
 # ### JPL Space Images Featured Image
 
 def featured_image(browser):
-
     # Visit URL
-    url = 'https://data-class-jpl-space.s3.amazonaws.com/JPL_Space/index.html'
-    browser.visit(url)
-
-    # Find and click the full image button
-    full_image_elem = browser.find_by_tag('button')[1]
-    full_image_elem.click()
-
-    # Parse the resulting html with soup
-    html = browser.html
-    img_soup = soup(html, 'html.parser')
-
-    # Add try/except for error handling
     try:
-        # Find the relative image url
-        img_url_rel = img_soup.find('img', class_='fancybox-image').get('src')
-
-    except AttributeError:
-        return None
-
-    # Use the base URL to create an absolute URL
-    img_url = f'https://data-class-jpl-space.s3.amazonaws.com/JPL_Space/{img_url_rel}'
-
-    return img_url
+        PREFIX = "https://web.archive.org/web/20181114023740"
+        url = f'{PREFIX}/https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
+        browser.visit(url)
+        article = browser.find_by_tag('article').first['style']
+        article_background = article.split("_/")[1].replace('");',"")
+        return f'{PREFIX}_if/{article_background}'
+    except:
+        return 'https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/pia22486-main.jpg'
 
 
 # ### Mars Facts
@@ -114,6 +104,7 @@ if __name__ == "__main__":
 
     # If running as script, print scraped data
     print(scrape_all())
+    
 
 
 
