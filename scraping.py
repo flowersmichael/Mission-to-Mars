@@ -1,4 +1,4 @@
-# Import Splinter, BeautifulSoup, Pandas
+# Import Sys, Splinter, BeautifulSoup, Pandas, Datetime
 import sys
 sys.path.append("/opt/anaconda3/envs/python37/lib/python3.7/site-packages")
 from splinter import Browser
@@ -9,6 +9,7 @@ import datetime as dt
 # Import ChromeDriverManager
 from webdriver_manager.chrome import ChromeDriverManager
 
+# Create scrape_all function
 def scrape_all():
 
     # Set the executable path and initialize the chrome browser in splinter
@@ -16,11 +17,8 @@ def scrape_all():
     executable_path = {'executable_path': ChromeDriverManager().install()}
     browser = Browser('chrome', **executable_path, headless=True)
 
+    
     news_title, news_paragraph = mars_news(browser)
-    print ('title is')
-    print(news_title)
-    print('paragraph')
-    print(news_paragraph)
 
     # Run all scraping functions and store results in a dictionary
     data = {
@@ -28,6 +26,7 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
+        "hemispheres": mars_hemispheres(browser),
         "last_modified": dt.datetime.now()
     }
     
@@ -35,10 +34,10 @@ def scrape_all():
     browser.quit()
     return data
 
+# Scrape Mars News
 
 def mars_news(browser):
-
-    # Scrape Mars News
+    
     # Visit the mars nasa news site
     url = 'https://mars.nasa.gov/news/'
     browser.visit(url)
@@ -100,13 +99,41 @@ def mars_facts():
     # Convert DataFrame to HTML format, add bootstrap
     return df.to_html()
 
+# ### Scrape hemisphere
+    
+def mars_hemispheres(browser):
+    # Use browser to visit the URL 
+    url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
+    browser.visit(url)
+
+    # Create a list to hold the images and titles.
+    hemisphere_image_urls = []
+
+    # Write code to retrieve the image urls and titles for each hemisphere.
+    for i in range(4):
+        # Create empty dictionary
+        hemispheres = {}
+        # Click on hemisphere link
+        browser.find_by_css('a.product-item h3')[i].click()
+        # Navigate to full-resolution image page
+        element = browser.links.find_by_text('Sample').first
+        # Navigate to full-res image
+        img_url = element['href']
+        # Navigate to image title
+        title = browser.find_by_css("h2.title").text
+        # Save full-resolution image URL string as value for img_url key
+        hemispheres["img_url"] = img_url
+        # Save hemisphere image title as value for title key
+        hemispheres["title"] = title
+        # Before getting the next image URL and title, add the dictionary with the image URL string and
+        # the hemisphere image title
+        hemisphere_image_urls.append(hemispheres)
+        # Go back on browser
+        browser.back()
+    return hemisphere_image_urls
+
 if __name__ == "__main__":
 
     # If running as script, print scraped data
     print(scrape_all())
     
-
-
-
-
-
