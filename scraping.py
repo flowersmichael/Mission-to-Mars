@@ -97,7 +97,7 @@ def mars_facts():
     df.set_index('description', inplace=True)
 
     # Convert DataFrame to HTML format, add bootstrap
-    return df.to_html()
+    return df.to_html(classes="table table-striped")
 
 # ### Scrape hemisphere
     
